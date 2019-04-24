@@ -11,12 +11,13 @@ from RPLCD.i2c import CharLCD
 lcd = CharLCD('PCF8574', address=0x27, port=1, backlight_enabled=True)
 #from struct import *
 
-# 读取多次，求平均值
+# Number of points for average
 read_times_per_test = 16
 
-# 管脚序号
+# pin number for Rx on raspi
 pin = 10
 
+# For LCD 1602 display
 def lcd_display(PM25, PM10):
     lcd.cursor_pos = (0, 0)
     lcd.write_string("PM25: {} ug/m3".format(PM25))
@@ -24,12 +25,13 @@ def lcd_display(PM25, PM10):
     lcd.write_string("PM10: {} ug/m3".format(PM10))
     time.sleep(0.5)
 
+# Read data from PMS7003 to raspi
 def read():
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(pin, GPIO.OUT)
     GPIO.output(pin, GPIO.HIGH)
 
-    # 打开串口  
+    # open serial 
     #ser = serial.Serial(port="/dev/ttyS0", baudrate=9600)  #method 1
     ser = serial.Serial()
     ser.baudrate = 9600
@@ -43,11 +45,11 @@ def read():
     pm25_list = []
     pm10_list = []
     while True:  
-        # 获得接收缓冲区字符
+        # number of bits waitted to be transmitted
         count = ser.inWaiting()
         
         if count >= 24:  
-            # 读取内容
+            # core of read
             recv = ser.read(count)
             print(count)
             ser.flushInput()
@@ -75,7 +77,7 @@ def read():
             cnt = cnt + 1
             if cnt >= read_times_per_test:
                 break
-        # 必要的软件延时  
+        # for delay  
         time.sleep(0.1)
 
     GPIO.output(pin, GPIO.LOW)
